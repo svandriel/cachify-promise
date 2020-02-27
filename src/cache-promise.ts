@@ -13,7 +13,7 @@ export * from './types/cache-options';
 export * from './types/cache-entry';
 
 const DEFAULT_TTL = Number.MAX_VALUE;
-const ENABLE_LOG = true;
+const ENABLE_LOG = false;
 
 function getDefaultCacheOptions<T>(): CacheOptions<T> {
     return {

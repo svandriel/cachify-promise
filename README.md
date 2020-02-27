@@ -7,12 +7,7 @@ const { cachifyPromise } = require('cachify-promise');
 
 const cachedFetch = cachifyPromise(fetch);
 
-await Promise.all([
-    cachedFetch('/api/users/1'),
-    cachedFetch('/api/users/1'),
-    cachedFetch('/api/users/1'),
-    cachedFetch('/api/users/42')
-]); // Results in only 2 calls
+await Promise.all([cachedFetch('/api/users/1'), cachedFetch('/api/users/1'), cachedFetch('/api/users/1'), cachedFetch('/api/users/42')]); // Results in only 2 calls
 
 const user = await cachedFetch('/api/users/42'); // From cache
 ```
@@ -76,7 +71,7 @@ const userPromise2 = fetchUser({ id: 1 });
 // --> triggers HTTP call
 ```
 
-By wrapping the `fetchUserWithID` function with `cachifyPromise`, only a single call will be made at the same time:
+By wrapping the `fetchUser` function with `cachifyPromise`, only a single call will be made at the same time:
 
 ```javascript
 const cachedFetchUser = cachifyPromise(fetchUser);
