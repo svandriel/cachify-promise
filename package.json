@@ -1,7 +1,7 @@
 {
   "name": "cachify-promise",
   "version": "0.0.1",
-  "description": "",
+  "description": "Caches promise-generating functions",
   "main": "dist/index.js",
   "scripts": {
     "clean": "rimraf dist",
@@ -11,7 +11,13 @@
     "watch": "tsc -w",
     "prepublish": "npm run verify"
   },
-  "keywords": [],
+  "keywords": [
+    "cache",
+    "promise",
+    "resolve",
+    "reject",
+    "caching"
+  ],
   "author": "Sander van Driel",
   "license": "ISC",
   "engines": {
