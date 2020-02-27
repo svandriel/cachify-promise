@@ -13,7 +13,7 @@ export * from './types/cache-options';
 export * from './types/cache-entry';
 
 const DEFAULT_TTL = Number.MAX_VALUE;
-const ENABLE_LOG = false;
+const ENABLE_LOG = true;
 
 function getDefaultCacheOptions<T>(): CacheOptions<T> {
     return {
@@ -101,11 +101,13 @@ export function cachifyPromise<T>(
             pendingPromises[key] = promise;
             promise
                 .then(response => {
-                    log(`cache ${opts.displayName}: ${key} storing result`);
-                    cache.set(key, {
-                        time: getTime(),
-                        data: response
-                    });
+                    if (opts.ttl > 0) {
+                        log(`cache ${opts.displayName}: ${key} storing result`);
+                        cache.set(key, {
+                            time: getTime(),
+                            data: response
+                        });
+                    }
                 })
                 .catch(() => {
                     /* no-op */

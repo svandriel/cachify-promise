@@ -24,6 +24,24 @@ describe('cache-promise', () => {
         expect(square).toHaveBeenCalledWith(3);
     });
 
+    it('does not cache resolved values with ttl = 0', async () => {
+        const myCache: ItemStorage<number> = {
+            delete: jest.fn(),
+            get: jest.fn(),
+            has: jest.fn(),
+            set: jest.fn()
+        };
+
+        const square = jest.fn((x: number) => Promise.resolve(x * x));
+        const squareCached = cachifyPromise(square, {
+            ttl: 0,
+            cache: myCache
+        });
+
+        expect(await squareCached(2)).toBe(4);
+        expect(myCache.set).not.toHaveBeenCalled();
+    });
+
     it('expires values', async () => {
         let now = new Date().getTime();
         spyOn(stub, 'getTime').and.callFake(() => now);
