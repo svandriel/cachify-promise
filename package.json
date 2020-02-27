@@ -1,6 +1,6 @@
 {
   "name": "cachify-promise",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Caches promise-generating functions",
   "main": "dist/index.js",
   "bugs": {
