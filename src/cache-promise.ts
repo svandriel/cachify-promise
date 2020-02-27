@@ -1,5 +1,5 @@
 import { CacheEntry } from './types/cache-entry';
-import { CacheOptions } from './types/cache-options';
+import { CacheOptions, CacheOptions0, CacheOptions1, CacheOptions2, CacheOptions3 } from './types/cache-options';
 import {
     PromiseReturningFunction,
     PromiseReturningFunction0,
@@ -17,7 +17,8 @@ const ENABLE_LOG = false;
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
     displayName: '<fn>',
     ttl: DEFAULT_TTL,
-    staleWhileRevalidate: false
+    staleWhileRevalidate: false,
+    key: JSON.stringify
 };
 
 function log(...args: any[]): void {
@@ -28,39 +29,39 @@ function log(...args: any[]): void {
 
 export function cachePromise<T>(
     req: PromiseReturningFunction0<T>,
-    cacheOptions?: Partial<CacheOptions>
+    cacheOptions?: Partial<CacheOptions0>
 ): PromiseReturningFunction0<T>;
 export function cachePromise<A, T>(
     req: PromiseReturningFunction1<A, T>,
-    cacheOptions?: Partial<CacheOptions>
+    cacheOptions?: Partial<CacheOptions1<A>>
 ): PromiseReturningFunction1<A, T>;
 export function cachePromise<A, B, T>(
     req: PromiseReturningFunction2<A, B, T>,
-    cacheOptions?: Partial<CacheOptions>
+    cacheOptions?: Partial<CacheOptions2<A, B>>
 ): PromiseReturningFunction2<A, B, T>;
 export function cachePromise<A, B, C, T>(
     req: PromiseReturningFunction3<A, B, C, T>,
-    cacheOptions?: Partial<CacheOptions>
+    cacheOptions?: Partial<CacheOptions3<A, B, C>>
 ): PromiseReturningFunction3<A, B, C, T>;
 
 export function cachePromise<T>(
-    req: PromiseReturningFunction<T>,
+    fn: PromiseReturningFunction<T>,
     cacheOptions?: Partial<CacheOptions>
 ): PromiseReturningFunction<T> {
-    const opts = Object.assign({}, DEFAULT_CACHE_OPTIONS, cacheOptions);
-    const cache: Record<string, CacheEntry<T>> = {};
+    const opts: CacheOptions = Object.assign({}, DEFAULT_CACHE_OPTIONS, cacheOptions);
+    const cache: Map<string, CacheEntry<T>> = new Map();
     const pendingPromises: Record<string, Promise<T>> = {};
 
     return (...args: any[]) => {
-        const key = JSON.stringify(args || {});
+        const key = opts.key(...args);
 
-        if (pendingPromises[key] && !(opts.staleWhileRevalidate && cache[key])) {
+        if (pendingPromises[key] && !(opts.staleWhileRevalidate && cache.has(key))) {
             log(`cache ${opts.displayName}: ${key} promise cache hit`);
             return pendingPromises[key];
         }
 
-        if (cache[key]) {
-            const entry = cache[key];
+        if (cache.has(key)) {
+            const entry = cache.get(key) as CacheEntry<T>;
             const age = getTime() - entry.time;
             if (age <= opts.ttl) {
                 log(`cache ${opts.displayName}: ${key} cache hit - age: ${age}, expiration: ${opts.ttl}`);
@@ -76,30 +77,31 @@ export function cachePromise<T>(
                         log(
                             `cache ${opts.displayName}: ${key} stale cache hit, revalidating - age: ${age}, ttl: ${opts.ttl}`
                         );
-                        doRequest().catch(err => {
-                            console.error(
+                        execute().catch(err => {
+                            log(
                                 `cache ${opts.displayName}: ${key} failed to do stale revalidation in background: ${err}`
                             );
                         });
                     }
                     return Promise.resolve(entry.data);
                 } else {
-                    delete cache[key];
+                    cache.delete(key);
                 }
             }
         }
+
         log(`cache ${opts.displayName}: ${key} cache miss, fetching...`);
 
-        function doRequest(): Promise<T> {
-            const actualRequest = req(...args);
-            pendingPromises[key] = actualRequest;
-            actualRequest
+        function execute(): Promise<T> {
+            const promise = fn(...args);
+            pendingPromises[key] = promise;
+            promise
                 .then(response => {
                     log(`cache ${opts.displayName}: ${key} storing result`);
-                    cache[key] = {
+                    cache.set(key, {
                         time: getTime(),
                         data: response
-                    };
+                    });
                 })
                 .catch(() => {
                     /* no-op */
@@ -108,9 +110,9 @@ export function cachePromise<T>(
                     log(`cache ${opts.displayName}: ${key} removing pending promise`);
                     delete pendingPromises[key];
                 });
-            return actualRequest;
+            return promise;
         }
-        return doRequest();
+        return execute();
     };
 }
 

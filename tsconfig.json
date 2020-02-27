@@ -2,7 +2,7 @@
   "compilerOptions": {
     "outDir": "dist",
 
-    "target": "es5",
+    "target": "ES2015",
     "module": "commonjs",
     "declaration": true,
     "sourceMap": true,
@@ -19,8 +19,8 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Module Resolution Options */
-    "moduleResolution": "node",
-    "esModuleInterop": true,
+    // "moduleResolution": "node",
+    // "esModuleInterop": true,
 
     /* Advanced Options */
     "forceConsistentCasingInFileNames": true

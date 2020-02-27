@@ -1,22 +1,24 @@
 import { cachePromise } from './cache-promise';
 import * as stub from './cache-promise';
 import { deferred } from './test-util/deferred';
-import { delay } from './test-util/delay';
+import { expectRejection } from './test-util/expect-rejection';
+import { tick } from './test-util/tick';
 
 describe('cache-promise', () => {
     it('returns existing resolved value', async () => {
         const square = jest.fn((x: number) => Promise.resolve(x * x));
-        const squareCached = cachePromise(square);
+        const squareCached = cachePromise(square, {
+            key: item => `${item}`
+        });
 
         expect(await squareCached(2)).toBe(4);
         expect(square).toHaveBeenCalledTimes(1);
         expect(square).toHaveBeenCalledWith(2);
 
-        await delay(0);
+        expect(await squareCached(2)).toBe(4);
+        expect(square).toHaveBeenCalledTimes(1);
 
         expect(await squareCached(3)).toBe(9);
-        expect(await squareCached(2)).toBe(4);
-
         expect(square).toHaveBeenCalledTimes(2);
         expect(square).toHaveBeenCalledWith(3);
     });
@@ -24,6 +26,7 @@ describe('cache-promise', () => {
     it('expires values', async () => {
         let now = new Date().getTime();
         spyOn(stub, 'getTime').and.callFake(() => now);
+
         const square = jest.fn((x: number) => Promise.resolve(x * x));
         const squareCached = cachePromise(square, {
             ttl: 1000
@@ -35,7 +38,7 @@ describe('cache-promise', () => {
 
         now += 1001;
 
-        await delay(0);
+        await tick();
 
         expect(await squareCached(2)).toBe(4);
 
@@ -48,15 +51,20 @@ describe('cache-promise', () => {
 
         const squareCached = cachePromise(square);
 
+        // Call two times with same argument
         const cachedPromise1 = squareCached(2);
         const cachedPromise2 = squareCached(2);
 
+        // Both should return same promise
+        expect(cachedPromise1).toBe(cachedPromise2);
+
+        // Underlying function should have been called just once
         expect(square).toHaveBeenCalledTimes(1);
 
+        // When the underlying promise resolves...
         resolve(4);
 
-        expect(square).toHaveBeenCalledTimes(1);
-
+        // ... both promises should render the same value
         expect(await cachedPromise1).toBe(4);
         expect(await cachedPromise2).toBe(4);
     });
@@ -76,18 +84,8 @@ describe('cache-promise', () => {
 
         expect(square).toHaveBeenCalledTimes(1);
 
-        try {
-            await cachedPromise1;
-            fail('expected error (1)');
-        } catch (err) {
-            expect(err).toBe('fail');
-        }
-        try {
-            await cachedPromise2;
-            fail('expected error (2)');
-        } catch (err) {
-            expect(err).toBe('fail');
-        }
+        await expectRejection(cachedPromise1, 'fail');
+        await expectRejection(cachedPromise2, 'fail');
     });
 
     it('performs revalidation while stale', async () => {
@@ -110,7 +108,7 @@ describe('cache-promise', () => {
 
         // Move past the TTL
         now += 11;
-        await delay(0);
+        await tick();
 
         // Hitting expired item, triggering revalidation
         const promise2 = squareCached(2);
@@ -120,7 +118,47 @@ describe('cache-promise', () => {
 
         // Once revalidation completes, should resolve with the new value
         deferreds[1].resolve(5);
-        await delay(0);
+        await tick();
         expect(await squareCached(2)).toBe(5);
     });
+
+    it('can use a custom key generator', async () => {
+        const getName = jest.fn((user: User) => Promise.resolve(user.name));
+
+        const cacheGetName = cachePromise(getName, {
+            key: u => `${u.id}`
+        });
+
+        expect(
+            await cacheGetName(({
+                id: 1,
+                name: 'John'
+            } as any) as User)
+        ).toBe('John');
+
+        expect(getName).toHaveBeenCalledTimes(1);
+
+        expect(
+            await cacheGetName(({
+                id: 1,
+                name: 'John II'
+            } as any) as User)
+        ).toBe('John');
+
+        expect(getName).toHaveBeenCalledTimes(1);
+
+        expect(
+            await cacheGetName(({
+                id: 2,
+                name: 'John III'
+            } as any) as User)
+        ).toBe('John III');
+
+        expect(getName).toHaveBeenCalledTimes(2);
+    });
 });
+
+interface User {
+    id: number;
+    name: string;
+}
