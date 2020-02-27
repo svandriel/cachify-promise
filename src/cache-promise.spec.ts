@@ -3,6 +3,7 @@ import * as stub from './cache-promise';
 import { deferred } from './test-util/deferred';
 import { expectRejection } from './test-util/expect-rejection';
 import { tick } from './test-util/tick';
+import { ItemStorage } from './types/item-storage';
 
 describe('cache-promise', () => {
     it('returns existing resolved value', async () => {
@@ -155,6 +156,37 @@ describe('cache-promise', () => {
         ).toBe('John III');
 
         expect(getName).toHaveBeenCalledTimes(2);
+    });
+
+    it('can use a custom cache', async () => {
+        const now = new Date().getTime();
+        spyOn(stub, 'getTime').and.callFake(() => now);
+
+        const myCache: ItemStorage<string> = {
+            delete: jest.fn(),
+            get: jest.fn(),
+            has: jest.fn(),
+            set: jest.fn()
+        };
+        const getName = jest.fn((user: User) => Promise.resolve(user.name));
+
+        const cacheGetName = cachePromise(getName, {
+            cache: myCache,
+            key: user => `${user.id}`
+        });
+
+        expect(
+            await cacheGetName({
+                id: 1,
+                name: 'John'
+            })
+        ).toEqual('John');
+
+        expect(myCache.has).toHaveBeenCalledWith('1');
+        expect(myCache.set).toHaveBeenCalledWith('1', {
+            time: now,
+            data: 'John'
+        });
     });
 });
 

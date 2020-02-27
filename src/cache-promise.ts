@@ -10,16 +10,20 @@ import {
 
 export * from './types/promise-returning-function';
 export * from './types/cache-options';
+export * from './types/cache-entry';
 
 const DEFAULT_TTL = Number.MAX_VALUE;
 const ENABLE_LOG = false;
 
-const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-    displayName: '<fn>',
-    ttl: DEFAULT_TTL,
-    staleWhileRevalidate: false,
-    key: JSON.stringify
-};
+function getDefaultCacheOptions<T>(): CacheOptions<T> {
+    return {
+        displayName: '<fn>',
+        ttl: DEFAULT_TTL,
+        staleWhileRevalidate: false,
+        key: JSON.stringify,
+        cache: new Map<string, CacheEntry<T>>()
+    };
+}
 
 function log(...args: any[]): void {
     if (ENABLE_LOG) {
@@ -29,27 +33,27 @@ function log(...args: any[]): void {
 
 export function cachePromise<T>(
     req: PromiseReturningFunction0<T>,
-    cacheOptions?: Partial<CacheOptions0>
+    cacheOptions?: Partial<CacheOptions0<T>>
 ): PromiseReturningFunction0<T>;
 export function cachePromise<A, T>(
     req: PromiseReturningFunction1<A, T>,
-    cacheOptions?: Partial<CacheOptions1<A>>
+    cacheOptions?: Partial<CacheOptions1<A, T>>
 ): PromiseReturningFunction1<A, T>;
 export function cachePromise<A, B, T>(
     req: PromiseReturningFunction2<A, B, T>,
-    cacheOptions?: Partial<CacheOptions2<A, B>>
+    cacheOptions?: Partial<CacheOptions2<A, B, T>>
 ): PromiseReturningFunction2<A, B, T>;
 export function cachePromise<A, B, C, T>(
     req: PromiseReturningFunction3<A, B, C, T>,
-    cacheOptions?: Partial<CacheOptions3<A, B, C>>
+    cacheOptions?: Partial<CacheOptions3<A, B, C, T>>
 ): PromiseReturningFunction3<A, B, C, T>;
 
 export function cachePromise<T>(
     fn: PromiseReturningFunction<T>,
-    cacheOptions?: Partial<CacheOptions>
+    cacheOptions?: Partial<CacheOptions<T>>
 ): PromiseReturningFunction<T> {
-    const opts: CacheOptions = Object.assign({}, DEFAULT_CACHE_OPTIONS, cacheOptions);
-    const cache: Map<string, CacheEntry<T>> = new Map();
+    const opts: CacheOptions<T> = Object.assign({}, getDefaultCacheOptions<T>(), cacheOptions);
+    const cache = opts.cache;
     const pendingPromises: Record<string, Promise<T>> = {};
 
     return (...args: any[]) => {

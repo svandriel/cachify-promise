@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 export function deferred<U>(): Deferred<U> {
     let doResolve: (val: U | PromiseLike<U> | undefined) => void;
     let doReject: (reason: any) => void;
