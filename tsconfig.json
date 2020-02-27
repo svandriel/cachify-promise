@@ -25,6 +25,5 @@
     /* Advanced Options */
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["**/*.spec.ts", "**/test-util"]
+  "include": ["src/**/*.ts"]
 }

@@ -9,7 +9,13 @@
     "build": "tsc",
     "verify": "npm run test && npm run clean && npm run build",
     "watch": "tsc -w",
-    "prepublish": "npm run verify"
+    "prepublish": "npm run verify",
+    "lint": "npm run lint:prettier && npm run lint:tslint",
+    "lint:fix": "npm run lint:prettier:fix && npm run lint:tslint:fix",
+    "lint:prettier": "prettier \"src/**/*.{ts,json}\" --check",
+    "lint:prettier:fix": "prettier \"src/**/*.{ts,json}\" --write",
+    "lint:tslint": "tslint -p . -t stylish",
+    "lint:tslint:fix": "tslint -p . -t stylish --fix"
   },
   "keywords": [
     "cache",
@@ -41,7 +47,7 @@
     }
   },
   "lint-staged": {
-    "packages/**/*.ts": [
+    "src/**/*.ts": [
       "prettier --write",
       "tslint -p . -t stylish --fix"
     ],

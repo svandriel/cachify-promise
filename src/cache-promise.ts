@@ -31,24 +31,24 @@ function log(...args: any[]): void {
     }
 }
 
-export function cachePromise<T>(
+export function cachifyPromise<T>(
     req: PromiseReturningFunction0<T>,
     cacheOptions?: Partial<CacheOptions0<T>>
 ): PromiseReturningFunction0<T>;
-export function cachePromise<A, T>(
+export function cachifyPromise<A, T>(
     req: PromiseReturningFunction1<A, T>,
     cacheOptions?: Partial<CacheOptions1<A, T>>
 ): PromiseReturningFunction1<A, T>;
-export function cachePromise<A, B, T>(
+export function cachifyPromise<A, B, T>(
     req: PromiseReturningFunction2<A, B, T>,
     cacheOptions?: Partial<CacheOptions2<A, B, T>>
 ): PromiseReturningFunction2<A, B, T>;
-export function cachePromise<A, B, C, T>(
+export function cachifyPromise<A, B, C, T>(
     req: PromiseReturningFunction3<A, B, C, T>,
     cacheOptions?: Partial<CacheOptions3<A, B, C, T>>
 ): PromiseReturningFunction3<A, B, C, T>;
 
-export function cachePromise<T>(
+export function cachifyPromise<T>(
     fn: PromiseReturningFunction<T>,
     cacheOptions?: Partial<CacheOptions<T>>
 ): PromiseReturningFunction<T> {

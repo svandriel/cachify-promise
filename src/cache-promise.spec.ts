@@ -1,4 +1,4 @@
-import { cachePromise } from './cache-promise';
+import { cachifyPromise } from './cache-promise';
 import * as stub from './cache-promise';
 import { deferred } from './test-util/deferred';
 import { expectRejection } from './test-util/expect-rejection';
@@ -8,7 +8,7 @@ import { ItemStorage } from './types/item-storage';
 describe('cache-promise', () => {
     it('returns existing resolved value', async () => {
         const square = jest.fn((x: number) => Promise.resolve(x * x));
-        const squareCached = cachePromise(square, {
+        const squareCached = cachifyPromise(square, {
             key: item => `${item}`
         });
 
@@ -29,7 +29,7 @@ describe('cache-promise', () => {
         spyOn(stub, 'getTime').and.callFake(() => now);
 
         const square = jest.fn((x: number) => Promise.resolve(x * x));
-        const squareCached = cachePromise(square, {
+        const squareCached = cachifyPromise(square, {
             ttl: 1000
         });
 
@@ -50,7 +50,7 @@ describe('cache-promise', () => {
         const { promise, resolve } = deferred<number>();
         const square = jest.fn((_x: number) => promise);
 
-        const squareCached = cachePromise(square);
+        const squareCached = cachifyPromise(square);
 
         // Call two times with same argument
         const cachedPromise1 = squareCached(2);
@@ -74,7 +74,7 @@ describe('cache-promise', () => {
         const { promise, reject } = deferred<number>();
         const square = jest.fn((_: number) => promise);
 
-        const squareCached = cachePromise(square);
+        const squareCached = cachifyPromise(square);
 
         const cachedPromise1 = squareCached(2);
         const cachedPromise2 = squareCached(2);
@@ -97,7 +97,7 @@ describe('cache-promise', () => {
         spyOn(stub, 'getTime').and.callFake(() => now);
 
         const square = jest.fn(_ => deferreds[invocation++].promise);
-        const squareCached = cachePromise(square, {
+        const squareCached = cachifyPromise(square, {
             ttl: 10,
             staleWhileRevalidate: true
         });
@@ -126,7 +126,7 @@ describe('cache-promise', () => {
     it('can use a custom key generator', async () => {
         const getName = jest.fn((user: User) => Promise.resolve(user.name));
 
-        const cacheGetName = cachePromise(getName, {
+        const cacheGetName = cachifyPromise(getName, {
             key: u => `${u.id}`
         });
 
@@ -170,7 +170,7 @@ describe('cache-promise', () => {
         };
         const getName = jest.fn((user: User) => Promise.resolve(user.name));
 
-        const cacheGetName = cachePromise(getName, {
+        const cacheGetName = cachifyPromise(getName, {
             cache: myCache,
             key: user => `${user.id}`
         });
