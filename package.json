@@ -1,7 +1,7 @@
 {
   "name": "cachify-promise",
   "version": "0.1.0",
-  "description": "Caches promise-generating functions",
+  "description": "Deduplicates and caches promise-returning functions",
   "main": "dist/index.js",
   "bugs": {
     "url": "https://github.com/svandriel/cachify-promise/issues"
