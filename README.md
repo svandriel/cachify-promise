@@ -29,6 +29,7 @@ npm install cachify-promise
 -   Caches resolved values
 -   Fully Typescript-ready
 -   Supports stale-while-revalidate caching policy
+-   Cleans expired items from the cache periodically
 -   Customizable (time-to-live, custom cache storage, key generation)
 -   Works both in browsers and Node.js (requires `Promise` and `Map` to be available or polyfilled)
 
@@ -44,7 +45,8 @@ const cachedFn = cachifyPromise(fn, options);
     -   `staleWhileRevalidate`: Enable 'stale-while-revalidate' policy (defaults to `false`)
     -   `cache`: Cache instance, must implement `has`, `get`, `set`, `delete`. Defaults to `new Map()`.
     -   `key`: Function for generating cache keys, must return strings.
--   Returns a function with the same signature as `fn`
+    -   `cleanupInterval`: Time in _milliseconds_ that determines the interval at which a cleanup job is run. This job clears any expired cache items. Defaults to 5000 ms.
+-   Returns a function with the same signature as `fn`.
 
 ### Full example
 
@@ -99,6 +101,12 @@ You can customize the time-to-live using the `ttl` option (see Usage).
 To disable caching of resolved values altogether, set `ttl` to `0`.
 
 The cache key is determined by running `JSON.stringify` over the argument array passed to the function. You can provide your own key-generating function with the `key` option (see Usage).
+
+## Cleanup
+
+When there are items in the cache, a periodic cleanup job is run to clean any expired items in the cache.
+
+**NOTE**: cleanup is not run when the `staleWhileRevalidate` policy is active
 
 ## Stale while revalidate
 

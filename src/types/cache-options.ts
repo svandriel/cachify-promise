@@ -5,6 +5,8 @@ export interface CacheOptions<T> {
     ttl: number;
     staleWhileRevalidate: boolean;
     cache: ItemStorage<T>;
+    debug: boolean;
+    cleanupInterval: number;
     key(...args: any[]): string;
 }
 

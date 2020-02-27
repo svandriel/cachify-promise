@@ -1,3 +1,4 @@
+import { getDefaultCacheOptions } from './defaults';
 import { CacheEntry } from './types/cache-entry';
 import { CacheOptions, CacheOptions0, CacheOptions1, CacheOptions2, CacheOptions3 } from './types/cache-options';
 import {
@@ -11,25 +12,6 @@ import {
 export * from './types/promise-returning-function';
 export * from './types/cache-options';
 export * from './types/cache-entry';
-
-const DEFAULT_TTL = Number.MAX_VALUE;
-const ENABLE_LOG = false;
-
-function getDefaultCacheOptions<T>(): CacheOptions<T> {
-    return {
-        displayName: '<fn>',
-        ttl: DEFAULT_TTL,
-        staleWhileRevalidate: false,
-        key: JSON.stringify,
-        cache: new Map<string, CacheEntry<T>>()
-    };
-}
-
-function log(...args: any[]): void {
-    if (ENABLE_LOG) {
-        console.log(...args);
-    }
-}
 
 export function cachifyPromise<T>(
     req: PromiseReturningFunction0<T>,
@@ -55,6 +37,7 @@ export function cachifyPromise<T>(
     const opts: CacheOptions<T> = Object.assign({}, getDefaultCacheOptions<T>(), cacheOptions);
     const cache = opts.cache;
     const pendingPromises: Record<string, Promise<T>> = {};
+    let cleanupInterval: number | undefined;
 
     return (...args: any[]) => {
         const key = opts.key(...args);
@@ -66,60 +49,101 @@ export function cachifyPromise<T>(
 
         if (cache.has(key)) {
             const entry = cache.get(key) as CacheEntry<T>;
-            const age = getTime() - entry.time;
-            if (age <= opts.ttl) {
-                log(`cache ${opts.displayName}: ${key} cache hit - age: ${age}, expiration: ${opts.ttl}`);
+            if (!isExpired(entry)) {
+                log(`Cache hit for '${key}'`);
                 return Promise.resolve(entry.data);
             } else {
                 // expired
                 if (opts.staleWhileRevalidate) {
                     if (pendingPromises[key]) {
-                        log(
-                            `cache ${opts.displayName}: ${key} stale cache hit, but already revalidating - age: ${age}, ttl: ${opts.ttl}`
-                        );
+                        log(`Stale cache hit for '${key}', but already revalidating`);
                     } else {
-                        log(
-                            `cache ${opts.displayName}: ${key} stale cache hit, revalidating - age: ${age}, ttl: ${opts.ttl}`
-                        );
+                        log(`Stale cache hit for '${key}', revalidating`);
                         execute().catch(err => {
-                            log(
-                                `cache ${opts.displayName}: ${key} failed to do stale revalidation in background: ${err}`
-                            );
+                            log(`Failed to do stale revalidation for '${key}' in background: ${err}`);
                         });
                     }
                     return Promise.resolve(entry.data);
                 } else {
                     cache.delete(key);
+                    if (cache.size === 0) {
+                        stopCleanupJob();
+                    }
                 }
             }
         }
 
-        log(`cache ${opts.displayName}: ${key} cache miss, fetching...`);
+        log(`Cache miss for '${key}', fetching...`);
 
         function execute(): Promise<T> {
             const promise = fn(...args);
             pendingPromises[key] = promise;
+
             promise
                 .then(response => {
                     if (opts.ttl > 0) {
-                        log(`cache ${opts.displayName}: ${key} storing result`);
+                        log(`Storing result '${key}'`);
                         cache.set(key, {
                             time: getTime(),
                             data: response
                         });
+                        startCleanupJob();
                     }
                 })
                 .catch(() => {
                     /* no-op */
                 })
                 .then(() => {
-                    log(`cache ${opts.displayName}: ${key} removing pending promise`);
+                    log(`Removing pending promise '${key}'`);
                     delete pendingPromises[key];
                 });
             return promise;
         }
         return execute();
     };
+
+    function startCleanupJob(): void {
+        if (!cleanupInterval && !opts.staleWhileRevalidate) {
+            log(`Starting cleanup job every ${opts.cleanupInterval} ms`);
+            cleanupInterval = setInterval(cleanup, opts.cleanupInterval);
+        }
+    }
+
+    function stopCleanupJob(): void {
+        if (cleanupInterval) {
+            log(`Stopping cleanup job`);
+            clearInterval(cleanupInterval);
+            cleanupInterval = undefined;
+        }
+    }
+
+    function isExpired(entry: CacheEntry<T>): boolean {
+        const age = getTime() - entry.time;
+        return age > opts.ttl;
+    }
+
+    function cleanup(): void {
+        const removeableKeys: string[] = [];
+        for (const [key, value] of cache.entries()) {
+            if (isExpired(value)) {
+                removeableKeys.push(key);
+            }
+        }
+        if (removeableKeys.length > 0) {
+            log(`Expired keys: ${removeableKeys}`);
+            removeableKeys.forEach(key => {
+                cache.delete(key);
+            });
+        }
+        if (cache.size === 0) {
+            stopCleanupJob();
+        }
+    }
+    function log(...args: any[]): void {
+        if (opts.debug) {
+            console.log(`[cache] ${opts.displayName}`, ...args);
+        }
+    }
 }
 
 export const getTime = () => {
