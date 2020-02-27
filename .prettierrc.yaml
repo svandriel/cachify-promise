@@ -1,0 +1,14 @@
+arrowParens: 'avoid'
+printWidth: 120
+quoteProps: 'as-needed'
+semi: true
+singleQuote: true
+tabWidth: 4
+trailingComma: 'none'
+overrides:
+  - files: '*.yaml'
+    options:
+      tabWidth: 2
+  - files: '*.json'
+    options:
+      tabWidth: 2
