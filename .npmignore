@@ -2,7 +2,7 @@
 .prettierrc.yaml
 *.log
 coverage
-jest.config.jest
+jest.config.js
 node_modules
 src
 tsconfig.json
