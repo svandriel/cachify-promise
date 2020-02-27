@@ -139,7 +139,9 @@ export function cachifyPromise<T>(
             stopCleanupJob();
         }
     }
+
     function log(...args: any[]): void {
+        /* istanbul ignore if  */
         if (opts.debug) {
             console.log(`[cache] ${opts.displayName}`, ...args);
         }
