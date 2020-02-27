@@ -26,10 +26,11 @@ npm install cachify-promise
 ## Features
 
 -   Promise deduplication
--   Cache resolved values
+-   Caches resolved values
 -   Fully Typescript-ready
 -   Supports stale-while-revalidate caching policy
 -   Customizable (time-to-live, custom cache storage, key generation)
+-   Works both in browsers and Node.js (when `Promise` is available or polyfilled)
 
 ## Usage
 

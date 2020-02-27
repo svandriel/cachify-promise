@@ -3,6 +3,14 @@
   "version": "0.0.1",
   "description": "Caches promise-generating functions",
   "main": "dist/index.js",
+  "bugs": {
+    "url": "https://github.com/svandriel/cachify-promise/issues"
+  },
+  "homepage": "https://github.com/svandriel/cachify-promise#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/svandriel/cachify-promise.git"
+  },
   "scripts": {
     "clean": "rimraf dist",
     "test": "jest",
