@@ -7,7 +7,12 @@ const { cachifyPromise } = require('cachify-promise');
 
 const cachedFetch = cachifyPromise(fetch);
 
-await Promise.all([cachedFetch('/api/users/1'), cachedFetch('/api/users/1'), cachedFetch('/api/users/1'), cachedFetch('/api/users/42')]); // Results in only 2 calls
+await Promise.all([
+    cachedFetch('/api/users/1'),
+    cachedFetch('/api/users/1'),
+    cachedFetch('/api/users/1'),
+    cachedFetch('/api/users/42')
+]); // Results in only 2 calls
 
 const user = await cachedFetch('/api/users/42'); // From cache
 ```

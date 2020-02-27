@@ -39,7 +39,7 @@
       "options": [1]
     },
     "max-line-length": {
-      "options": [140]
+      "options": [120]
     },
     "member-ordering": {
       "options": {

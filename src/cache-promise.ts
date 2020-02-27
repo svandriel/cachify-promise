@@ -48,7 +48,10 @@ export function cachifyPromise<A, B, C, T>(
     cacheOptions?: Partial<CacheOptions3<A, B, C, T>>
 ): PromiseReturningFunction3<A, B, C, T>;
 
-export function cachifyPromise<T>(fn: PromiseReturningFunction<T>, cacheOptions?: Partial<CacheOptions<T>>): PromiseReturningFunction<T> {
+export function cachifyPromise<T>(
+    fn: PromiseReturningFunction<T>,
+    cacheOptions?: Partial<CacheOptions<T>>
+): PromiseReturningFunction<T> {
     const opts: CacheOptions<T> = Object.assign({}, getDefaultCacheOptions<T>(), cacheOptions);
     const cache = opts.cache;
     const pendingPromises: Record<string, Promise<T>> = {};
@@ -71,11 +74,17 @@ export function cachifyPromise<T>(fn: PromiseReturningFunction<T>, cacheOptions?
                 // expired
                 if (opts.staleWhileRevalidate) {
                     if (pendingPromises[key]) {
-                        log(`cache ${opts.displayName}: ${key} stale cache hit, but already revalidating - age: ${age}, ttl: ${opts.ttl}`);
+                        log(
+                            `cache ${opts.displayName}: ${key} stale cache hit, but already revalidating - age: ${age}, ttl: ${opts.ttl}`
+                        );
                     } else {
-                        log(`cache ${opts.displayName}: ${key} stale cache hit, revalidating - age: ${age}, ttl: ${opts.ttl}`);
+                        log(
+                            `cache ${opts.displayName}: ${key} stale cache hit, revalidating - age: ${age}, ttl: ${opts.ttl}`
+                        );
                         execute().catch(err => {
-                            log(`cache ${opts.displayName}: ${key} failed to do stale revalidation in background: ${err}`);
+                            log(
+                                `cache ${opts.displayName}: ${key} failed to do stale revalidation in background: ${err}`
+                            );
                         });
                     }
                     return Promise.resolve(entry.data);
