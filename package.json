@@ -15,7 +15,7 @@
     "clean": "rimraf dist",
     "test": "jest",
     "build": "tsc",
-    "verify": "npm run test && npm run clean && npm run build",
+    "verify": "npm run test && npm run lint && npm run clean && npm run build",
     "watch": "tsc -w",
     "prepublish": "npm run verify",
     "lint": "npm run lint:prettier && npm run lint:tslint",
