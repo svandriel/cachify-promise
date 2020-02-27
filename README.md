@@ -30,7 +30,7 @@ npm install cachify-promise
 -   Fully Typescript-ready
 -   Supports stale-while-revalidate caching policy
 -   Customizable (time-to-live, custom cache storage, key generation)
--   Works both in browsers and Node.js (when `Promise` is available or polyfilled)
+-   Works both in browsers and Node.js (requires `Promise` and `Map` to be available or polyfilled)
 
 ## Usage
 
