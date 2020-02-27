@@ -12,6 +12,8 @@ describe('cache-promise', () => {
         expect(square).toHaveBeenCalledTimes(1);
         expect(square).toHaveBeenCalledWith(2);
 
+        await delay(0);
+
         expect(await squareCached(3)).toBe(9);
         expect(await squareCached(2)).toBe(4);
 
@@ -19,7 +21,7 @@ describe('cache-promise', () => {
         expect(square).toHaveBeenCalledWith(3);
     });
 
-    it.only('expires values', async () => {
+    it('expires values', async () => {
         let now = new Date().getTime();
         spyOn(stub, 'getTime').and.callFake(() => now);
         const square = jest.fn((x: number) => Promise.resolve(x * x));
@@ -33,7 +35,7 @@ describe('cache-promise', () => {
 
         now += 1001;
 
-        await delay(1);
+        await delay(0);
 
         expect(await squareCached(2)).toBe(4);
 
@@ -86,5 +88,39 @@ describe('cache-promise', () => {
         } catch (err) {
             expect(err).toBe('fail');
         }
+    });
+
+    it('performs revalidation while stale', async () => {
+        const deferreds = [deferred<number>(), deferred<number>()];
+        let invocation = 0;
+
+        let now = new Date().getTime();
+        spyOn(stub, 'getTime').and.callFake(() => now);
+
+        const square = jest.fn(_ => deferreds[invocation++].promise);
+        const squareCached = cachePromise(square, {
+            ttl: 10,
+            staleWhileRevalidate: true
+        });
+
+        // Invoke first time and resolve it
+        const promise1 = squareCached(2);
+        deferreds[0].resolve(4);
+        expect(await promise1).toBe(4);
+
+        // Move past the TTL
+        now += 11;
+        await delay(0);
+
+        // Hitting expired item, triggering revalidation
+        const promise2 = squareCached(2);
+        // Expect stale data to be returned while revalidating
+        expect(await promise2).toBe(4);
+        expect(square).toHaveBeenCalledTimes(2);
+
+        // Once revalidation completes, should resolve with the new value
+        deferreds[1].resolve(5);
+        await delay(0);
+        expect(await squareCached(2)).toBe(5);
     });
 });

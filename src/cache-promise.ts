@@ -12,7 +12,7 @@ export * from './types/promise-returning-function';
 export * from './types/cache-options';
 
 const DEFAULT_TTL = Number.MAX_VALUE;
-const ENABLE_LOG = true;
+const ENABLE_LOG = false;
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
     displayName: '<fn>',
@@ -70,11 +70,11 @@ export function cachePromise<T>(
                 if (opts.staleWhileRevalidate) {
                     if (pendingPromises[key]) {
                         log(
-                            `cache ${opts.displayName}: ${key} stale cache hit, but already revalidating - age: ${age}, expiration: ${opts.ttl}`
+                            `cache ${opts.displayName}: ${key} stale cache hit, but already revalidating - age: ${age}, ttl: ${opts.ttl}`
                         );
                     } else {
                         log(
-                            `cache ${opts.displayName}: ${key} stale cache hit, revalidating - age: ${age}, expiration: ${opts.ttl}`
+                            `cache ${opts.displayName}: ${key} stale cache hit, revalidating - age: ${age}, ttl: ${opts.ttl}`
                         );
                         doRequest().catch(err => {
                             console.error(

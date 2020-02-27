@@ -7,7 +7,9 @@
     "clean": "rimraf dist",
     "test": "jest",
     "build": "tsc",
-    "watch": "tsc -w"
+    "verify": "npm run test && npm run clean && npm run build",
+    "watch": "tsc -w",
+    "prepublish": "npm run verify"
   },
   "keywords": [],
   "author": "Sander van Driel",
@@ -29,7 +31,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged",
-      "pre-push": "npm run build && npm run test"
+      "pre-push": "npm run verify"
     }
   },
   "lint-staged": {

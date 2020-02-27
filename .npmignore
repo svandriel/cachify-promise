@@ -1,0 +1,9 @@
+.editorconfig
+.prettierrc.yaml
+*.log
+coverage
+jest.config.jest
+node_modules
+src
+tsconfig.json
+tslint.json
