@@ -112,7 +112,7 @@ When there are items in the cache, a periodic cleanup job is run to clean any ex
 
 ## Stale while revalidate
 
-Sometimes, it is acceptable to return a stale ('old') value when a cache item is past it's time-to-live. In the meantime, a fresh value is being fetched in the background.
+Sometimes, it is acceptable to return a stale ('old') value when a cache item is past its time-to-live. In the meantime, a fresh value is being fetched in the background.
 
 ```javascript
 const cachedFetchUser = cachifyPromise(fetchUser, {
