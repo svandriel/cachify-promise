@@ -1,5 +1,7 @@
 # cachify-promise
 
+![build](https://travis-ci.com/svandriel/cachify-promise.svg?branch=master)
+
 Deduplicates and caches promise-returning functions
 
 ```javascript
