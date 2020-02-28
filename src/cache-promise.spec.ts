@@ -1,11 +1,11 @@
-import { cachifyPromise, CacheEntry } from './cache-promise';
+import { CacheEntry, cachifyPromise } from './cache-promise';
 import * as stub from './cache-promise';
 import { deferred } from './test-util/deferred';
 import { expectRejection } from './test-util/expect-rejection';
 import { tick } from './test-util/tick';
 import { ItemStorage } from './types/item-storage';
 
-const debug = !!(globalThis as any)?.process?.env?.DEBUG;
+const debug = !!process.env.DEBUG;
 
 describe('cache-promise', () => {
     it('returns existing resolved value', async () => {

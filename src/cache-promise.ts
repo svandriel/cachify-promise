@@ -37,7 +37,7 @@ export function cachifyPromise<T>(
     const opts: CacheOptions<T> = Object.assign({}, getDefaultCacheOptions<T>(), cacheOptions);
     const cache = opts.cache;
     const pendingPromises: Record<string, Promise<T>> = {};
-    let cleanupInterval: number | undefined;
+    let cleanupInterval: NodeJS.Timeout | undefined;
 
     return (...args: any[]) => {
         const key = opts.key(...args);
