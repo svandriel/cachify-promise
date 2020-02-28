@@ -33,7 +33,7 @@
     "caching"
   ],
   "author": "Sander van Driel",
-  "license": "ISC",
+  "license": "MIT",
   "engines": {
     "node": ">=10"
   },
