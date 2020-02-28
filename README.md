@@ -1,6 +1,6 @@
 # cachify-promise
 
-![build](https://travis-ci.com/svandriel/cachify-promise.svg?branch=master)
+[![Build status](https://travis-ci.com/svandriel/cachify-promise.svg?branch=master)](https://travis-ci.com/svandriel/cachify-promise)
 
 Deduplicates and caches promise-returning functions
 
