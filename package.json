@@ -17,7 +17,7 @@
     "build": "tsc",
     "verify": "npm run test && npm run lint && npm run clean && npm run build",
     "watch": "tsc -w",
-    "prepublish": "npm run verify",
+    "version": "npm run verify",
     "lint": "npm run lint:prettier && npm run lint:tslint",
     "lint:fix": "npm run lint:prettier:fix && npm run lint:tslint:fix",
     "lint:prettier": "prettier \"src/**/*.{ts,json}\" --check",
