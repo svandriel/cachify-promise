@@ -53,7 +53,7 @@ export function cachifyPromise<T>(
         const key = opts.key(...args);
 
         if (pendingPromises[key] && !(opts.staleWhileRevalidate && cache.has(key))) {
-            log(`cache ${opts.displayName}: ${key} promise cache hit`);
+            log(`Promise cache hit for '${key}'`);
             incrementStatsValue('hitPromise');
             return pendingPromises[key];
         }
@@ -108,7 +108,7 @@ export function cachifyPromise<T>(
                     /* no-op */
                 })
                 .then(() => {
-                    log(`Removing pending promise '${key}'`);
+                    log(`Removing pending promise for '${key}'`);
                     delete pendingPromises[key];
                 });
             return promise;
