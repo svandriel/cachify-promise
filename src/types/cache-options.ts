@@ -1,4 +1,5 @@
 import { ItemStorage } from './item-storage';
+import { CacheStats } from './stats';
 
 export interface CacheOptions<T> {
     displayName: string;
@@ -8,6 +9,7 @@ export interface CacheOptions<T> {
     debug: boolean;
     cleanupInterval: number;
     key(...args: any[]): string;
+    stats(stats: CacheStats): void;
 }
 
 export interface CacheOptions0<T> extends CacheOptions<T> {

@@ -8,10 +8,13 @@ import {
     PromiseReturningFunction2,
     PromiseReturningFunction3
 } from './types/promise-returning-function';
+import { CacheStats } from './types/stats';
 
-export * from './types/promise-returning-function';
-export * from './types/cache-options';
 export * from './types/cache-entry';
+export * from './types/cache-options';
+export * from './types/item-storage';
+export * from './types/promise-returning-function';
+export * from './types/stats';
 
 export function cachifyPromise<T>(
     req: PromiseReturningFunction0<T>,
@@ -39,11 +42,19 @@ export function cachifyPromise<T>(
     const pendingPromises: Record<string, Promise<T>> = {};
     let cleanupInterval: NodeJS.Timeout | undefined;
 
+    const stats: CacheStats = {
+        hitValue: 0,
+        hitPromise: 0,
+        miss: 0,
+        put: 0
+    };
+
     return (...args: any[]) => {
         const key = opts.key(...args);
 
         if (pendingPromises[key] && !(opts.staleWhileRevalidate && cache.has(key))) {
             log(`cache ${opts.displayName}: ${key} promise cache hit`);
+            incrementStatsValue('hitPromise');
             return pendingPromises[key];
         }
 
@@ -51,6 +62,7 @@ export function cachifyPromise<T>(
             const entry = cache.get(key) as CacheEntry<T>;
             if (!isExpired(entry)) {
                 log(`Cache hit for '${key}'`);
+                incrementStatsValue('hitValue');
                 return Promise.resolve(entry.data);
             } else {
                 // expired
@@ -72,6 +84,7 @@ export function cachifyPromise<T>(
                 }
             }
         }
+        incrementStatsValue('miss');
 
         log(`Cache miss for '${key}', fetching...`);
 
@@ -87,6 +100,7 @@ export function cachifyPromise<T>(
                             time: getTime(),
                             data: response
                         });
+                        incrementStatsValue('put');
                         startCleanupJob();
                     }
                 })
@@ -138,6 +152,11 @@ export function cachifyPromise<T>(
         if (cache.size === 0) {
             stopCleanupJob();
         }
+    }
+
+    function incrementStatsValue<K extends keyof CacheStats>(key: K): void {
+        stats[key] = stats[key] + 1;
+        opts.stats(Object.assign({}, stats));
     }
 
     function log(...args: any[]): void {

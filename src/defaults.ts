@@ -6,12 +6,15 @@ const DEFAULT_CLEANUP_INTERVAL = 10000;
 
 export function getDefaultCacheOptions<T>(): CacheOptions<T> {
     return {
-        displayName: '<fn>',
-        ttl: DEFAULT_TTL,
-        staleWhileRevalidate: false,
-        key: JSON.stringify,
         cache: new Map<string, CacheEntry<T>>(),
         cleanupInterval: DEFAULT_CLEANUP_INTERVAL,
-        debug: false
+        debug: false,
+        displayName: '<fn>',
+        key: JSON.stringify,
+        staleWhileRevalidate: false,
+        stats: () => {
+            /* no-op */
+        },
+        ttl: DEFAULT_TTL
     };
 }

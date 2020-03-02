@@ -33,7 +33,9 @@ npm install cachify-promise
 -   Supports stale-while-revalidate caching policy
 -   Cleans expired items from the cache periodically
 -   Customizable (time-to-live, custom cache storage, key generation)
--   Works both in browsers and Node.js (requires `Promise` and `Map` to be available or polyfilled)
+-   No dependencies
+-   Works in browsers (requires `Promise` and `Map` to be available or polyfilled)
+-   Works in Node.js (10 or above)
 
 ## Usage
 
@@ -47,7 +49,8 @@ const cachedFn = cachifyPromise(fn, options);
     -   `staleWhileRevalidate`: Enable 'stale-while-revalidate' policy (defaults to `false`)
     -   `cache`: Cache instance, must implement `has`, `get`, `set`, `delete`. Defaults to `new Map()`.
     -   `key`: Function for generating cache keys, must return strings.
-    -   `cleanupInterval`: Time in _milliseconds_ that determines the interval at which a cleanup job is run. This job clears any expired cache items. Defaults to 5000 ms.
+    -   `cleanupInterval`: Time in _milliseconds_ that determines the interval at which a cleanup job is run. This job clears any expired cache items. Defaults to 10000 ms.
+    -   `stats`: Callback function to receive stats. Will be called on each update with an object containing `hitPromise`, `hitValue`, `miss` and `put` values.
 -   Returns a function with the same signature as `fn`.
 
 ### Full example
@@ -57,9 +60,10 @@ const { cachifyPromise } = require('cachify-promise');
 
 const cachedFetch = cachifyPromise(fetch, {
     ttl: 3600 * 1000, // one hour
-    key: (url, options) => `${options?.method} ${url}`,
+    key: (url, options) => `${options.method} ${url}`,
     cache: new Map(),
-    staleWhileRevalidate: true
+    staleWhileRevalidate: true,
+    stats: stats => console.log('stats', stats)
 });
 ```
 
@@ -139,4 +143,26 @@ const userPromise3 = cachedFetchUser({ id: 1 });
 
 const userPromise4 = cachedFetchUser({ id: 1 });
 // --> new user data!
+```
+
+## Statistics
+
+When a `stats` function is provided (see Usage), that function will be invoked each time a cache interaction takes place. The object passed as a parameter to that function will contain:
+
+-   `hitPromise`: Cache hits on pending promises
+-   `hitValue`: Cache hits on stored values
+-   `miss`: Cache misses
+-   `put`: Cache puts
+
+The number of cache accesses may be computed with:
+
+```javascript
+access = stat.hitPromise + stat.hitValue + stat.miss;
+```
+
+As such, the hit and miss ratios may be calculated with:
+
+```javascript
+hitRatio = (stat.hitPromise + stat.hitValue) / access;
+missRatio = stat.miss / access;
 ```

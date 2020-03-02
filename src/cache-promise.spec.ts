@@ -4,21 +4,26 @@ import { deferred } from './test-util/deferred';
 import { expectRejection } from './test-util/expect-rejection';
 import { tick } from './test-util/tick';
 import { ItemStorage } from './types/item-storage';
+import { CacheStats } from './types/stats';
 
 const debug = !!process.env.DEBUG;
 
 describe('cache-promise', () => {
     it('returns existing resolved value', async () => {
         const square = jest.fn((x: number) => Promise.resolve(x * x));
+        const stats = jest.fn<void, [CacheStats]>();
         const squareCached = cachifyPromise(square, {
             key: item => `${item}`,
             debug,
-            displayName: 'fn1'
+            displayName: 'fn1',
+            stats
         });
 
         expect(await squareCached(2)).toBe(4);
         expect(square).toHaveBeenCalledTimes(1);
         expect(square).toHaveBeenCalledWith(2);
+
+        await tick();
 
         expect(await squareCached(2)).toBe(4);
         expect(square).toHaveBeenCalledTimes(1);
@@ -26,9 +31,17 @@ describe('cache-promise', () => {
         expect(await squareCached(3)).toBe(9);
         expect(square).toHaveBeenCalledTimes(2);
         expect(square).toHaveBeenCalledWith(3);
+
+        expect(stats).toHaveBeenLastCalledWith({
+            hitPromise: 0,
+            hitValue: 1,
+            miss: 2,
+            put: 2
+        });
     });
 
     it('does not cache resolved values with ttl = 0', async () => {
+        const stats = jest.fn<void, [CacheStats]>();
         const myCache: ItemStorage<number> = {
             delete: jest.fn(),
             get: jest.fn(),
@@ -43,14 +56,24 @@ describe('cache-promise', () => {
             ttl: 0,
             cache: myCache,
             debug,
-            displayName: 'fn2'
+            displayName: 'fn2',
+            stats
         });
 
         expect(await squareCached(2)).toBe(4);
         expect(myCache.set).not.toHaveBeenCalled();
+
+        expect(stats).toHaveBeenLastCalledWith({
+            hitPromise: 0,
+            hitValue: 0,
+            miss: 1,
+            put: 0
+        });
     });
 
     it('expires values', async () => {
+        const stats = jest.fn<void, [CacheStats]>();
+
         let now = new Date().getTime();
         spyOn(stub, 'getTime').and.callFake(() => now);
 
@@ -58,7 +81,8 @@ describe('cache-promise', () => {
         const squareCached = cachifyPromise(square, {
             ttl: 1000,
             debug,
-            displayName: 'fn3'
+            displayName: 'fn3',
+            stats
         });
 
         expect(await squareCached(2)).toBe(4);
@@ -72,15 +96,25 @@ describe('cache-promise', () => {
         expect(await squareCached(2)).toBe(4);
 
         expect(square).toHaveBeenCalledTimes(2);
+
+        expect(stats).toHaveBeenLastCalledWith({
+            hitPromise: 0,
+            hitValue: 0,
+            miss: 2,
+            put: 2
+        });
     });
 
     it('returns pending promise', async () => {
+        const stats = jest.fn<void, [CacheStats]>();
+
         const { promise, resolve } = deferred<number>();
         const square = jest.fn((_x: number) => promise);
 
         const squareCached = cachifyPromise(square, {
             debug,
-            displayName: 'fn4'
+            displayName: 'fn4',
+            stats
         });
 
         // Call two times with same argument
@@ -99,15 +133,25 @@ describe('cache-promise', () => {
         // ... both promises should render the same value
         expect(await cachedPromise1).toBe(4);
         expect(await cachedPromise2).toBe(4);
+
+        expect(stats).toHaveBeenLastCalledWith({
+            hitPromise: 1,
+            hitValue: 0,
+            miss: 1,
+            put: 1
+        });
     });
 
     it('returns pending promise that has been rejected', async () => {
+        const stats = jest.fn<void, [CacheStats]>();
+
         const { promise, reject } = deferred<number>();
         const square = jest.fn((_: number) => promise);
 
         const squareCached = cachifyPromise(square, {
             debug,
-            displayName: 'fn5'
+            displayName: 'fn5',
+            stats
         });
 
         const cachedPromise1 = squareCached(2);
@@ -121,9 +165,18 @@ describe('cache-promise', () => {
 
         await expectRejection(cachedPromise1, 'fail!');
         await expectRejection(cachedPromise2, 'fail!');
+
+        expect(stats).toHaveBeenLastCalledWith({
+            hitPromise: 1,
+            hitValue: 0,
+            miss: 1,
+            put: 0
+        });
     });
 
     it('performs revalidation while stale', async () => {
+        const stats = jest.fn<void, [CacheStats]>();
+
         const deferreds = [deferred<number>(), deferred<number>()];
         let invocation = 0;
 
@@ -135,7 +188,8 @@ describe('cache-promise', () => {
             ttl: 10,
             staleWhileRevalidate: true,
             debug,
-            displayName: 'fn6'
+            displayName: 'fn6',
+            stats
         });
 
         // Invoke first time and resolve it
@@ -157,15 +211,24 @@ describe('cache-promise', () => {
         deferreds[1].resolve(5);
         await tick();
         expect(await squareCached(2)).toBe(5);
+
+        expect(stats).toHaveBeenLastCalledWith({
+            hitPromise: 0,
+            hitValue: 1,
+            miss: 1,
+            put: 2
+        });
     });
 
     it('can use a custom key generator', async () => {
+        const stats = jest.fn<void, [CacheStats]>();
         const getName = jest.fn((user: User) => Promise.resolve(user.name));
 
         const cacheGetName = cachifyPromise(getName, {
             key: u => `${u.id}`,
             debug,
-            displayName: 'fn7'
+            displayName: 'fn7',
+            stats
         });
 
         expect(
@@ -176,6 +239,7 @@ describe('cache-promise', () => {
         ).toBe('John');
 
         expect(getName).toHaveBeenCalledTimes(1);
+        await tick();
 
         expect(
             await cacheGetName(({
@@ -194,9 +258,18 @@ describe('cache-promise', () => {
         ).toBe('John III');
 
         expect(getName).toHaveBeenCalledTimes(2);
+
+        expect(stats).toHaveBeenLastCalledWith({
+            hitPromise: 0,
+            hitValue: 1,
+            miss: 2,
+            put: 2
+        });
     });
 
     it('can use a custom cache', async () => {
+        const stats = jest.fn<void, [CacheStats]>();
+
         const now = new Date().getTime();
         spyOn(stub, 'getTime').and.callFake(() => now);
 
@@ -214,7 +287,8 @@ describe('cache-promise', () => {
             cache: myCache,
             key: user => `${user.id}`,
             debug,
-            displayName: 'fn8'
+            displayName: 'fn8',
+            stats
         });
 
         expect(
@@ -229,10 +303,19 @@ describe('cache-promise', () => {
             time: now,
             data: 'John'
         });
+
+        expect(stats).toHaveBeenLastCalledWith({
+            hitPromise: 0,
+            hitValue: 0,
+            miss: 1,
+            put: 1
+        });
     });
 
     it('runs a cleanup job', async () => {
         jest.useFakeTimers();
+        const stats = jest.fn<void, [CacheStats]>();
+
         let now = new Date().getTime();
         spyOn(stub, 'getTime').and.callFake(() => now);
 
@@ -241,7 +324,8 @@ describe('cache-promise', () => {
         const cachedSquare = cachifyPromise(square, {
             ttl: 3600 * 1000,
             cleanupInterval: 5000,
-            cache
+            cache,
+            stats
         });
 
         await cachedSquare(2);
@@ -251,6 +335,13 @@ describe('cache-promise', () => {
         jest.runAllTimers();
 
         expect(cache.size).toBe(0);
+
+        expect(stats).toHaveBeenLastCalledWith({
+            hitPromise: 0,
+            hitValue: 0,
+            miss: 1,
+            put: 1
+        });
     });
 });
 
