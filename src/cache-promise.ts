@@ -1,4 +1,10 @@
+import { CacheState } from './cache-state';
 import { getDefaultCacheOptions } from './defaults';
+import { stopCleanupJob } from './lib/cleanup';
+import { executePromise } from './lib/execute-promise';
+import { incrementStatsValue } from './lib/increment-stats-value';
+import { isExpired } from './lib/is-expired';
+import { log } from './lib/log';
 import { CacheEntry } from './types/cache-entry';
 import { CacheOptions, CacheOptions0, CacheOptions1, CacheOptions2, CacheOptions3 } from './types/cache-options';
 import {
@@ -8,7 +14,6 @@ import {
     PromiseReturningFunction2,
     PromiseReturningFunction3
 } from './types/promise-returning-function';
-import { CacheStats } from './types/stats';
 
 export * from './types/cache-entry';
 export * from './types/cache-options';
@@ -38,133 +43,59 @@ export function cachifyPromise<T>(
     cacheOptions?: Partial<CacheOptions<T>>
 ): PromiseReturningFunction<T> {
     const opts: CacheOptions<T> = Object.assign({}, getDefaultCacheOptions<T>(), cacheOptions);
-    const cache = opts.cacheMap;
-    const pendingPromises: Record<string, Promise<T>> = {};
-    let cleanupInterval: NodeJS.Timeout | undefined;
 
-    const stats: CacheStats = {
-        hitValue: 0,
-        hitPromise: 0,
-        miss: 0,
-        put: 0
+    const state: CacheState<T> = {
+        cacheMap: opts.cacheMap,
+        promiseCacheMap: {},
+        stats: {
+            hitValue: 0,
+            hitPromise: 0,
+            miss: 0,
+            put: 0
+        }
     };
 
     return (...args: any[]) => {
         const key = opts.cacheKeyFn(...args);
 
-        if (pendingPromises[key] && !(opts.staleWhileRevalidate && cache.has(key))) {
-            log(`Promise cache hit for '${key}'`);
-            incrementStatsValue('hitPromise');
-            return pendingPromises[key];
+        if (state.promiseCacheMap[key] && !(opts.staleWhileRevalidate && state.cacheMap.has(key))) {
+            log(opts, `Promise cache hit for '${key}'`);
+            incrementStatsValue(state, opts, 'hitPromise');
+            return state.promiseCacheMap[key];
         }
 
-        if (cache.has(key)) {
-            const entry = cache.get(key) as CacheEntry<T>;
-            if (!isExpired(entry)) {
-                log(`Cache hit for '${key}'`);
-                incrementStatsValue('hitValue');
+        if (state.cacheMap.has(key)) {
+            const entry = state.cacheMap.get(key) as CacheEntry<T>;
+            if (!isExpired(opts, entry)) {
+                log(opts, `Cache hit for '${key}'`);
+                incrementStatsValue(state, opts, 'hitValue');
                 return Promise.resolve(entry.data);
             } else {
                 // expired
                 if (opts.staleWhileRevalidate) {
-                    if (pendingPromises[key]) {
-                        log(`Stale cache hit for '${key}', but already revalidating`);
+                    if (state.promiseCacheMap[key]) {
+                        log(opts, `Stale cache hit for '${key}', but already revalidating`);
                     } else {
-                        log(`Stale cache hit for '${key}', revalidating`);
-                        execute().catch(err => {
-                            log(`Failed to do stale revalidation for '${key}' in background: ${err}`);
+                        log(opts, `Stale cache hit for '${key}', revalidating`);
+                        executePromise(state, opts, fn, key, args).catch(err => {
+                            log(opts, `Failed to do stale revalidation for '${key}' in background: ${err}`);
                         });
                     }
                     return Promise.resolve(entry.data);
                 } else {
-                    cache.delete(key);
-                    if (cache.size === 0) {
-                        stopCleanupJob();
+                    state.cacheMap.delete(key);
+                    if (state.cacheMap.size === 0) {
+                        stopCleanupJob(state, opts);
                     }
                 }
             }
         }
-        incrementStatsValue('miss');
+        incrementStatsValue(state, opts, 'miss');
 
-        log(`Cache miss for '${key}', fetching...`);
+        log(opts, `Cache miss for '${key}', fetching...`);
 
-        function execute(): Promise<T> {
-            const promise = fn(...args);
-            pendingPromises[key] = promise;
-
-            promise
-                .then(response => {
-                    if (opts.ttl > 0) {
-                        log(`Storing result '${key}'`);
-                        cache.set(key, {
-                            time: getTime(),
-                            data: response
-                        });
-                        incrementStatsValue('put');
-                        startCleanupJob();
-                    }
-                })
-                .catch(() => {
-                    /* no-op */
-                })
-                .then(() => {
-                    log(`Removing pending promise for '${key}'`);
-                    delete pendingPromises[key];
-                });
-            return promise;
-        }
-        return execute();
+        return executePromise(state, opts, fn, key, args);
     };
-
-    function startCleanupJob(): void {
-        if (!cleanupInterval && !opts.staleWhileRevalidate) {
-            log(`Starting cleanup job every ${opts.cleanupInterval} ms`);
-            cleanupInterval = setInterval(cleanup, opts.cleanupInterval);
-        }
-    }
-
-    function stopCleanupJob(): void {
-        if (cleanupInterval) {
-            log(`Stopping cleanup job`);
-            clearInterval(cleanupInterval);
-            cleanupInterval = undefined;
-        }
-    }
-
-    function isExpired(entry: CacheEntry<T>): boolean {
-        const age = getTime() - entry.time;
-        return age > opts.ttl;
-    }
-
-    function cleanup(): void {
-        const removeableKeys: string[] = [];
-        for (const [key, value] of cache.entries()) {
-            if (isExpired(value)) {
-                removeableKeys.push(key);
-            }
-        }
-        if (removeableKeys.length > 0) {
-            log(`Expired keys: ${removeableKeys}`);
-            removeableKeys.forEach(key => {
-                cache.delete(key);
-            });
-        }
-        if (cache.size === 0) {
-            stopCleanupJob();
-        }
-    }
-
-    function incrementStatsValue<K extends keyof CacheStats>(key: K): void {
-        stats[key] = stats[key] + 1;
-        opts.statsFn(Object.assign({}, stats));
-    }
-
-    function log(...args: any[]): void {
-        /* istanbul ignore if  */
-        if (opts.debug) {
-            console.log(`[cache] ${opts.displayName}`, ...args);
-        }
-    }
 }
 
 export const getTime = () => {
