@@ -1,10 +1,10 @@
-import { CacheState } from '../cache-state';
-import { CacheOptions } from '../types/cache-options';
-import { log } from './log';
-import { incrementStatsValue } from './increment-stats-value';
-import { startCleanupJob } from './cleanup';
 import { getTime } from '../cache-promise';
+import { CacheOptions } from '../types/cache-options';
+import { CacheState } from '../types/cache-state';
 import { PromiseReturningFunction } from '../types/promise-returning-function';
+import { startCleanupJob } from './cleanup';
+import { incrementStatsValue } from './increment-stats-value';
+import { log } from './log';
 
 export function executePromise<T>(
     state: CacheState<T>,

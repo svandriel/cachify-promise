@@ -1,5 +1,5 @@
-import { CacheState } from '../cache-state';
 import { CacheOptions } from '../types/cache-options';
+import { CacheState } from '../types/cache-state';
 import { isExpired } from './is-expired';
 import { log } from './log';
 
