@@ -147,7 +147,7 @@ const userPromise4 = cachedFetchUser({ id: 1 });
 
 ## Statistics
 
-When a `stats` function is provided (see Usage), that function will be invoked each time a cache interaction takes place. The object passed as a parameter to that function will contain:
+When a `statsFn` function is provided (see Usage), that function will be invoked each time a cache interaction takes place. The object passed as a parameter to that function will contain:
 
 -   `hitPromise`: Cache hits on pending promises
 -   `hitValue`: Cache hits on stored values
