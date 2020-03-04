@@ -38,7 +38,7 @@ export function cachifyPromise<T>(
     cacheOptions?: Partial<CacheOptions<T>>
 ): PromiseReturningFunction<T> {
     const opts: CacheOptions<T> = Object.assign({}, getDefaultCacheOptions<T>(), cacheOptions);
-    const cache = opts.cache;
+    const cache = opts.cacheMap;
     const pendingPromises: Record<string, Promise<T>> = {};
     let cleanupInterval: NodeJS.Timeout | undefined;
 
@@ -50,7 +50,7 @@ export function cachifyPromise<T>(
     };
 
     return (...args: any[]) => {
-        const key = opts.key(...args);
+        const key = opts.cacheKeyFn(...args);
 
         if (pendingPromises[key] && !(opts.staleWhileRevalidate && cache.has(key))) {
             log(`Promise cache hit for '${key}'`);
@@ -156,7 +156,7 @@ export function cachifyPromise<T>(
 
     function incrementStatsValue<K extends keyof CacheStats>(key: K): void {
         stats[key] = stats[key] + 1;
-        opts.stats(Object.assign({}, stats));
+        opts.statsFn(Object.assign({}, stats));
     }
 
     function log(...args: any[]): void {

@@ -47,10 +47,10 @@ const cachedFn = cachifyPromise(fn, options);
 -   `options`
     -   `ttl`: Time-to-live in _milliseconds_ (defaults to `Number.MAX_VALUE`). Set to `0` to disable caching of resolved values.
     -   `staleWhileRevalidate`: Enable 'stale-while-revalidate' policy (defaults to `false`)
-    -   `cache`: Cache instance, must implement `has`, `get`, `set`, `delete`. Defaults to `new Map()`.
-    -   `key`: Function for generating cache keys, must return strings.
+    -   `cacheMap`: Cache instance, must implement `has`, `get`, `set`, `delete`. Defaults to `new Map()`.
+    -   `cacheKeyFn`: Function for generating cache keys, must return strings.
     -   `cleanupInterval`: Time in _milliseconds_ that determines the interval at which a cleanup job is run. This job clears any expired cache items. Defaults to 10000 ms.
-    -   `stats`: Callback function to receive stats. Will be called on each update with an object containing `hitPromise`, `hitValue`, `miss` and `put` values.
+    -   `statsFn`: Callback function to receive stats. Will be called on each update with an object containing `hitPromise`, `hitValue`, `miss` and `put` values.
 -   Returns a function with the same signature as `fn`.
 
 ### Full example
@@ -60,10 +60,10 @@ const { cachifyPromise } = require('cachify-promise');
 
 const cachedFetch = cachifyPromise(fetch, {
     ttl: 3600 * 1000, // one hour
-    key: (url, options) => `${options.method} ${url}`,
-    cache: new Map(),
+    cacheKeyFn: (url, options) => `${options.method} ${url}`,
+    cacheMap: new Map(),
     staleWhileRevalidate: true,
-    stats: stats => console.log('stats', stats)
+    statsFn: stats => console.log('Cache statistics:', stats)
 });
 ```
 
@@ -106,11 +106,11 @@ By default, resolved values will be cached for for a long time (`Number.MAX_VALU
 You can customize the time-to-live using the `ttl` option (see Usage).
 To disable caching of resolved values altogether, set `ttl` to `0`.
 
-The cache key is determined by running `JSON.stringify` over the argument array passed to the function. You can provide your own key-generating function with the `key` option (see Usage).
+The cache key is determined by running `JSON.stringify` over the argument array passed to the function. You can provide your own key-generating function with the `cacheKeyFn` option (see Usage).
 
 ## Cleanup
 
-When there are items in the cache, a periodic cleanup job is run to clean any expired items in the cache.
+When there are items in the cache, a periodic cleanup job is run to clean any expired items in the cache. The interval at which this job is run may be controlled with the `cleanupInterval` option.
 
 **NOTE**: cleanup is not run when the `staleWhileRevalidate` policy is active
 
