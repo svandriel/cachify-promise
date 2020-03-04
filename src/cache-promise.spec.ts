@@ -13,10 +13,10 @@ describe('cache-promise', () => {
         const square = jest.fn((x: number) => Promise.resolve(x * x));
         const stats = jest.fn<void, [CacheStats]>();
         const squareCached = cachifyPromise(square, {
-            key: item => `${item}`,
+            cacheKeyFn: item => `${item}`,
             debug,
             displayName: 'fn1',
-            stats
+            statsFn: stats
         });
 
         expect(await squareCached(2)).toBe(4);
@@ -54,10 +54,10 @@ describe('cache-promise', () => {
         const square = jest.fn((x: number) => Promise.resolve(x * x));
         const squareCached = cachifyPromise(square, {
             ttl: 0,
-            cache: myCache,
+            cacheMap: myCache,
             debug,
             displayName: 'fn2',
-            stats
+            statsFn: stats
         });
 
         expect(await squareCached(2)).toBe(4);
@@ -82,7 +82,7 @@ describe('cache-promise', () => {
             ttl: 1000,
             debug,
             displayName: 'fn3',
-            stats
+            statsFn: stats
         });
 
         expect(await squareCached(2)).toBe(4);
@@ -114,7 +114,7 @@ describe('cache-promise', () => {
         const squareCached = cachifyPromise(square, {
             debug,
             displayName: 'fn4',
-            stats
+            statsFn: stats
         });
 
         // Call two times with same argument
@@ -151,7 +151,7 @@ describe('cache-promise', () => {
         const squareCached = cachifyPromise(square, {
             debug,
             displayName: 'fn5',
-            stats
+            statsFn: stats
         });
 
         const cachedPromise1 = squareCached(2);
@@ -189,7 +189,7 @@ describe('cache-promise', () => {
             staleWhileRevalidate: true,
             debug,
             displayName: 'fn6',
-            stats
+            statsFn: stats
         });
 
         // Invoke first time and resolve it
@@ -225,10 +225,10 @@ describe('cache-promise', () => {
         const getName = jest.fn((user: User) => Promise.resolve(user.name));
 
         const cacheGetName = cachifyPromise(getName, {
-            key: u => `${u.id}`,
+            cacheKeyFn: u => `${u.id}`,
             debug,
             displayName: 'fn7',
-            stats
+            statsFn: stats
         });
 
         expect(
@@ -284,11 +284,11 @@ describe('cache-promise', () => {
         const getName = jest.fn((user: User) => Promise.resolve(user.name));
 
         const cacheGetName = cachifyPromise(getName, {
-            cache: myCache,
-            key: user => `${user.id}`,
+            cacheMap: myCache,
+            cacheKeyFn: user => `${user.id}`,
             debug,
             displayName: 'fn8',
-            stats
+            statsFn: stats
         });
 
         expect(
@@ -324,8 +324,8 @@ describe('cache-promise', () => {
         const cachedSquare = cachifyPromise(square, {
             ttl: 3600 * 1000,
             cleanupInterval: 5000,
-            cache,
-            stats
+            cacheMap: cache,
+            statsFn: stats
         });
 
         await cachedSquare(2);

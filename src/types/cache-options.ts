@@ -5,25 +5,25 @@ export interface CacheOptions<T> {
     displayName: string;
     ttl: number;
     staleWhileRevalidate: boolean;
-    cache: ItemStorage<T>;
+    cacheMap: ItemStorage<T>;
     debug: boolean;
     cleanupInterval: number;
-    key(...args: any[]): string;
-    stats(stats: CacheStats): void;
+    cacheKeyFn(...args: any[]): string;
+    statsFn(stats: CacheStats): void;
 }
 
 export interface CacheOptions0<T> extends CacheOptions<T> {
-    key(): string;
+    cacheKeyFn(): string;
 }
 
 export interface CacheOptions1<A, T> extends CacheOptions<T> {
-    key(a: A): string;
+    cacheKeyFn(a: A): string;
 }
 
 export interface CacheOptions2<A, B, T> extends CacheOptions<T> {
-    key(a: A, b: B): string;
+    cacheKeyFn(a: A, b: B): string;
 }
 
 export interface CacheOptions3<A, B, C, T> extends CacheOptions<T> {
-    key(a: A, b: B, c: C): string;
+    cacheKeyFn(a: A, b: B, c: C): string;
 }
