@@ -1,6 +1,6 @@
-import { CacheState } from '../cache-state';
-import { CacheStats } from '../types/stats';
 import { CacheOptions } from '../types/cache-options';
+import { CacheState } from '../types/cache-state';
+import { CacheStats } from '../types/stats';
 
 export function incrementStatsValue<T, K extends keyof CacheStats>(
     state: CacheState<T>,

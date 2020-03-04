@@ -1,5 +1,5 @@
-import { ItemStorage } from './types/item-storage';
-import { CacheStats } from './types/stats';
+import { ItemStorage } from './item-storage';
+import { CacheStats } from './stats';
 
 export interface CacheState<T> {
     readonly cacheMap: ItemStorage<T>;

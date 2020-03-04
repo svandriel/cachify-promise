@@ -1,4 +1,3 @@
-import { CacheState } from './cache-state';
 import { getDefaultCacheOptions } from './defaults';
 import { stopCleanupJob } from './lib/cleanup';
 import { executePromise } from './lib/execute-promise';
@@ -7,6 +6,7 @@ import { isExpired } from './lib/is-expired';
 import { log } from './lib/log';
 import { CacheEntry } from './types/cache-entry';
 import { CacheOptions, CacheOptions0, CacheOptions1, CacheOptions2, CacheOptions3 } from './types/cache-options';
+import { CacheState } from './types/cache-state';
 import {
     PromiseReturningFunction,
     PromiseReturningFunction0,
