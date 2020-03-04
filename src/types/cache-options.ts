@@ -2,14 +2,14 @@ import { ItemStorage } from './item-storage';
 import { CacheStats } from './stats';
 
 export interface CacheOptions<T> {
-    displayName: string;
-    ttl: number;
-    staleWhileRevalidate: boolean;
-    cacheMap: ItemStorage<T>;
-    debug: boolean;
-    cleanupInterval: number;
-    cacheKeyFn(...args: any[]): string;
-    statsFn(stats: CacheStats): void;
+    readonly displayName: string;
+    readonly ttl: number;
+    readonly staleWhileRevalidate: boolean;
+    readonly cacheMap: ItemStorage<T>;
+    readonly debug: boolean;
+    readonly cleanupInterval: number;
+    readonly cacheKeyFn: (...args: any[]) => string;
+    readonly statsFn: (stats: CacheStats) => void;
 }
 
 export interface CacheOptions0<T> extends CacheOptions<T> {
