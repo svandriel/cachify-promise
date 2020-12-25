@@ -1,6 +1,6 @@
 {
   "name": "cachify-promise",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Deduplicates and caches promise-returning functions",
   "main": "dist/index.js",
   "bugs": {
