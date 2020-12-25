@@ -66,9 +66,7 @@
   },
   "resolutions": {
     "acorn": "^7.1.1",
-    "minimist": "^1.2.2"
-  },
-  "dependencies": {
-    "acorn": "^7.1.1"
+    "minimist": "^1.2.2",
+    "node-notifier": "^8.0.1"
   }
 }
