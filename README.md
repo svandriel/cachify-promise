@@ -30,7 +30,7 @@ npm install cachify-promise
 -   Promise deduplication
 -   Caches resolved values
 -   Ignores failed promises (unlike most memoization functions)
--   Cache items is cleanable
+-   Deletion of items
 -   Fully Typescript-ready
 -   Supports stale-while-revalidate caching policy
 -   Cleans expired items from the cache periodically
