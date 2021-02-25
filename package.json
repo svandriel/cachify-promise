@@ -1,7 +1,7 @@
 {
   "name": "cachify-promise",
   "version": "0.2.5",
-  "description": "Deduplicates and caches promise-returning functions",
+  "description": "Smart caching for promises. Like memoization, but better.",
   "main": "dist/index.js",
   "bugs": {
     "url": "https://github.com/svandriel/cachify-promise/issues"
@@ -30,12 +30,14 @@
     "promise",
     "resolve",
     "reject",
-    "caching"
+    "caching",
+    "memoization",
+    "memo"
   ],
   "author": "Sander van Driel",
   "license": "MIT",
   "engines": {
-    "node": ">=10"
+    "node": "^10||^12||^13||^14"
   },
   "devDependencies": {
     "@types/jest": "^25.1.3",
