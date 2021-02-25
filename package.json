@@ -1,6 +1,6 @@
 {
   "name": "cachify-promise",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "description": "Smart caching for promises. Like memoization, but better.",
   "main": "dist/index.js",
   "bugs": {
