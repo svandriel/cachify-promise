@@ -312,6 +312,45 @@ describe('cache-promise', () => {
         });
     });
 
+    it('can delete items from cache (for no-arg function)', async () => {
+        const load = () => Promise.resolve('loaded');
+        const cacheMap = new Map<string, CacheEntry<string>>();
+
+        const cachedLoad = cachifyPromise(load, {
+            cacheMap
+        });
+
+        await expect(cachedLoad()).resolves.toBe('loaded');
+        await expect(cachedLoad()).resolves.toBe('loaded');
+
+        expect(cacheMap.size).toBe(1);
+
+        expect(cachedLoad.delete()).toBe(true);
+        expect(cachedLoad.delete()).toBe(false);
+
+        expect(cacheMap.size).toBe(0);
+    });
+
+    it('can delete items from cache', async () => {
+        const square = (x: number) => Promise.resolve(x * x);
+        const cacheMap = new Map<string, CacheEntry<number>>();
+
+        const cachedSquare = cachifyPromise(square, {
+            cacheMap
+        });
+
+        await expect(cachedSquare(2)).resolves.toBe(4);
+        await expect(cachedSquare(3)).resolves.toBe(9);
+        await expect(cachedSquare(4)).resolves.toBe(16);
+
+        expect(cacheMap.size).toBe(3);
+
+        expect(cachedSquare.delete(3)).toBe(true);
+        expect(cachedSquare.delete(3)).toBe(false);
+
+        expect(cacheMap.size).toBe(2);
+    });
+
     it('runs a cleanup job', async () => {
         jest.useFakeTimers();
         const stats = jest.fn<void, [CacheStats]>();

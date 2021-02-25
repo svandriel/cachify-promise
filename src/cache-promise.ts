@@ -12,7 +12,11 @@ import {
     PromiseReturningFunction0,
     PromiseReturningFunction1,
     PromiseReturningFunction2,
-    PromiseReturningFunction3
+    PromiseReturningFunction3,
+    PromiseReturningFunctionWithDelete0,
+    PromiseReturningFunctionWithDelete1,
+    PromiseReturningFunctionWithDelete3,
+    PromiseReturningFunctionWithDelete2
 } from './types/promise-returning-function';
 
 export * from './types/cache-entry';
@@ -24,19 +28,19 @@ export * from './types/stats';
 export function cachifyPromise<T>(
     req: PromiseReturningFunction0<T>,
     cacheOptions?: Partial<CacheOptions0<T>>
-): PromiseReturningFunction0<T>;
+): PromiseReturningFunctionWithDelete0<T>;
 export function cachifyPromise<A, T>(
     req: PromiseReturningFunction1<A, T>,
     cacheOptions?: Partial<CacheOptions1<A, T>>
-): PromiseReturningFunction1<A, T>;
+): PromiseReturningFunctionWithDelete1<A, T>;
 export function cachifyPromise<A, B, T>(
     req: PromiseReturningFunction2<A, B, T>,
     cacheOptions?: Partial<CacheOptions2<A, B, T>>
-): PromiseReturningFunction2<A, B, T>;
+): PromiseReturningFunctionWithDelete2<A, B, T>;
 export function cachifyPromise<A, B, C, T>(
     req: PromiseReturningFunction3<A, B, C, T>,
     cacheOptions?: Partial<CacheOptions3<A, B, C, T>>
-): PromiseReturningFunction3<A, B, C, T>;
+): PromiseReturningFunctionWithDelete3<A, B, C, T>;
 
 export function cachifyPromise<T>(
     fn: PromiseReturningFunction<T>,
@@ -55,7 +59,7 @@ export function cachifyPromise<T>(
         }
     };
 
-    return (...args: any[]) => {
+    const cachedFunction = (...args: any[]) => {
         const key = opts.cacheKeyFn(...args);
 
         if (state.promiseCacheMap[key] && !(opts.staleWhileRevalidate && state.cacheMap.has(key))) {
@@ -96,6 +100,14 @@ export function cachifyPromise<T>(
 
         return executePromise(state, opts, fn, key, args);
     };
+
+    return Object.assign(cachedFunction, {
+        delete(...args: any[]): boolean {
+            const key = opts.cacheKeyFn(...args);
+            log(opts, `Deleting ${key} from cache`);
+            return state.cacheMap.delete(key);
+        }
+    });
 }
 
 export const getTime = () => {

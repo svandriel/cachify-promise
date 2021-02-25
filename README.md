@@ -2,7 +2,7 @@
 
 [![Build status](https://travis-ci.com/svandriel/cachify-promise.svg?branch=master)](https://travis-ci.com/svandriel/cachify-promise)
 
-Deduplicates and caches promise-returning functions
+Smart caching for promises. Like memoization, but better.
 
 ```javascript
 const { cachifyPromise } = require('cachify-promise');
@@ -29,6 +29,8 @@ npm install cachify-promise
 
 -   Promise deduplication
 -   Caches resolved values
+-   Ignores failed promises (unlike most memoization functions)
+-   Cache items is cleanable
 -   Fully Typescript-ready
 -   Supports stale-while-revalidate caching policy
 -   Cleans expired items from the cache periodically
@@ -103,6 +105,8 @@ const userPromise2 = cachedFetchUser({ id: 1 });
 
 By default, resolved values will be cached for for a long time (`Number.MAX_VALUE` milliseconds).
 
+When a promise rejects, this will _not_ be stored.
+
 You can customize the time-to-live using the `ttl` option (see Usage).
 To disable caching of resolved values altogether, set `ttl` to `0`.
 
@@ -113,6 +117,20 @@ The cache key is determined by running `JSON.stringify` over the argument array 
 When there are items in the cache, a periodic cleanup job is run to clean any expired items in the cache. The interval at which this job is run may be controlled with the `cleanupInterval` option.
 
 **NOTE**: cleanup is not run when the `staleWhileRevalidate` policy is active
+
+## Deleting items from the cache
+
+You can delete entries from the cache by invoking the `.delete()` function. This function takes the same arguments as a regular invocation.
+
+```javascript
+const cachedFetchUser = cachifyPromise(fetchUser);
+
+// Invoke and store in cache
+await cachedFetchedUser({ id: 1 });
+
+// Removes user 1 from the cache
+cachedFetchedUser.delete({ id: 1 });
+```
 
 ## Stale while revalidate
 
