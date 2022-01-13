@@ -17,7 +17,7 @@ describe('cache-promise', () => {
         const stats = jest.fn<void, [CacheStats]>();
         const squareCached = cachifyPromise(square, {
             cacheKeyFn: item => `${item}`,
-            debug: true,
+            debug,
             displayName: 'fn1',
             statsFn: stats
         });
