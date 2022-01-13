@@ -47,7 +47,7 @@ describe('cache-promise', () => {
         const add = jest.fn((x: number, y: number) => Promise.resolve(x + y));
         const stats = jest.fn<void, [CacheStats]>();
         const addCached = cachifyPromise(add, {
-            debug: true,
+            debug,
             displayName: 'fn1',
             statsFn: stats
         });
