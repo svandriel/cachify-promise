@@ -9,6 +9,9 @@ import { CacheStats } from './types/stats';
 const debug = !!process.env.DEBUG;
 
 describe('cache-promise', () => {
+    beforeEach(() => {
+        mockSetInterval();
+    });
     it('returns existing resolved value', async () => {
         const square = jest.fn((x: number) => Promise.resolve(x * x));
         const stats = jest.fn<void, [CacheStats]>();
@@ -75,7 +78,7 @@ describe('cache-promise', () => {
         const stats = jest.fn<void, [CacheStats]>();
 
         let now = new Date().getTime();
-        spyOn(stub, 'getTime').and.callFake(() => now);
+        jest.spyOn(stub, 'getTime').mockImplementation(() => now);
 
         const square = jest.fn((x: number) => Promise.resolve(x * x));
         const squareCached = cachifyPromise(square, {
@@ -181,7 +184,7 @@ describe('cache-promise', () => {
         let invocation = 0;
 
         let now = new Date().getTime();
-        spyOn(stub, 'getTime').and.callFake(() => now);
+        jest.spyOn(stub, 'getTime').mockImplementation(() => now);
 
         const square = jest.fn(_ => deferreds[invocation++].promise);
         const squareCached = cachifyPromise(square, {
@@ -271,7 +274,7 @@ describe('cache-promise', () => {
         const stats = jest.fn<void, [CacheStats]>();
 
         const now = new Date().getTime();
-        spyOn(stub, 'getTime').and.callFake(() => now);
+        jest.spyOn(stub, 'getTime').mockImplementation(() => now);
 
         const myCache: ItemStorage<string> = {
             delete: jest.fn(),
@@ -356,7 +359,7 @@ describe('cache-promise', () => {
         const stats = jest.fn<void, [CacheStats]>();
 
         let now = new Date().getTime();
-        spyOn(stub, 'getTime').and.callFake(() => now);
+        jest.spyOn(stub, 'getTime').mockImplementation(() => now);
 
         const square = (x: number) => Promise.resolve(x * x);
         const cache = new Map<string, CacheEntry<number>>();
@@ -387,4 +390,16 @@ describe('cache-promise', () => {
 interface User {
     id: number;
     name: string;
+}
+
+function mockSetInterval(): void {
+    jest.spyOn(global, 'setInterval').mockImplementation((fn: TimerHandler) => {
+        if (typeof fn === 'function') {
+            fn();
+        }
+        return 1;
+    });
+    jest.spyOn(global, 'clearInterval').mockImplementation(() => {
+        // no-op
+    });
 }

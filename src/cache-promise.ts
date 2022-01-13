@@ -62,10 +62,11 @@ export function cachifyPromise<T>(
     const cachedFunction = (...args: any[]) => {
         const key = opts.cacheKeyFn(...args);
 
-        if (state.promiseCacheMap[key] && !(opts.staleWhileRevalidate && state.cacheMap.has(key))) {
+        const foundPromise = state.promiseCacheMap[key];
+        if (foundPromise && !(opts.staleWhileRevalidate && state.cacheMap.has(key))) {
             log(opts, `Promise cache hit for '${key}'`);
             incrementStatsValue(state, opts, 'hitPromise');
-            return state.promiseCacheMap[key];
+            return foundPromise;
         }
 
         if (state.cacheMap.has(key)) {
