@@ -41,7 +41,6 @@ describe('cache-promise', () => {
             miss: 2,
             put: 2
         });
-        // squareCached.stopCleanupInBackground();
     });
 
     it('does not cache resolved values with ttl = 0', async () => {
