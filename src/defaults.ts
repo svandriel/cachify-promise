@@ -10,7 +10,7 @@ export function getDefaultCacheOptions<T>(): CacheOptions<T> {
         cleanupInterval: DEFAULT_CLEANUP_INTERVAL,
         debug: false,
         displayName: '<fn>',
-        cacheKeyFn: JSON.stringify,
+        cacheKeyFn: (...args) => JSON.stringify(args),
         staleWhileRevalidate: false,
         statsFn: () => {
             /* no-op */

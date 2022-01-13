@@ -43,6 +43,36 @@ describe('cache-promise', () => {
         });
     });
 
+    it('returns existing resolved value for multi-arg functions', async () => {
+        const add = jest.fn((x: number, y: number) => Promise.resolve(x + y));
+        const stats = jest.fn<void, [CacheStats]>();
+        const addCached = cachifyPromise(add, {
+            debug: true,
+            displayName: 'fn1',
+            statsFn: stats
+        });
+
+        expect(await addCached(2, 3)).toBe(5);
+        expect(add).toHaveBeenCalledTimes(1);
+        expect(add).toHaveBeenCalledWith(2, 3);
+
+        await tick();
+
+        expect(await addCached(2, 3)).toBe(5);
+        expect(add).toHaveBeenCalledTimes(1);
+
+        expect(await addCached(2, 5)).toBe(7);
+        expect(add).toHaveBeenCalledTimes(2);
+        expect(add).toHaveBeenCalledWith(2, 5);
+
+        expect(stats).toHaveBeenLastCalledWith({
+            hitPromise: 0,
+            hitValue: 1,
+            miss: 2,
+            put: 2
+        });
+    });
+
     it('does not cache resolved values with ttl = 0', async () => {
         const stats = jest.fn<void, [CacheStats]>();
         const myCache: ItemStorage<number> = {
