@@ -3,7 +3,7 @@ import { CacheStats } from './stats';
 
 export interface CacheState<T> {
     readonly cacheMap: ItemStorage<T>;
-    readonly promiseCacheMap: Record<string, Promise<T>>;
+    readonly promiseCacheMap: Record<string, Promise<T> | undefined>;
     cleanupInterval?: any;
     readonly stats: CacheStats;
 }
