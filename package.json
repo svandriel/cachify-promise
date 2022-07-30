@@ -37,7 +37,7 @@
   "author": "Sander van Driel",
   "license": "MIT",
   "engines": {
-    "node": "^10||^12||^13||^14||^15||^16"
+    "node": "^10||>=12"
   },
   "devDependencies": {
     "@types/jest": "^27.4.0",
