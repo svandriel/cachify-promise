@@ -3,7 +3,10 @@ import { CacheState } from '../types/cache-state';
 import { isExpired } from './is-expired';
 import { log } from './log';
 
-export function startCleanupJob<T>(state: CacheState<T>, opts: CacheOptions<T>): void {
+export function startCleanupJob<T>(
+    state: CacheState<T>,
+    opts: CacheOptions<T>
+): void {
     if (!state.cleanupInterval && !opts.staleWhileRevalidate) {
         log(opts, `Starting cleanup job every ${opts.cleanupInterval} ms`);
         state.cleanupInterval = setInterval(() => {
@@ -12,10 +15,13 @@ export function startCleanupJob<T>(state: CacheState<T>, opts: CacheOptions<T>):
     }
 }
 
-export function stopCleanupJob<T>(state: CacheState<T>, opts: CacheOptions<T>): void {
+export function stopCleanupJob<T>(
+    state: CacheState<T>,
+    opts: CacheOptions<T>
+): void {
     if (state.cleanupInterval) {
         log(opts, 'Stopping cleanup job');
-        clearInterval(state.cleanupInterval);
+        clearInterval(state.cleanupInterval as number);
         state.cleanupInterval = undefined;
     }
 }

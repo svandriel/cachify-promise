@@ -8,7 +8,7 @@ export interface CacheOptions<T> {
     readonly cacheMap: ItemStorage<T>;
     readonly debug: boolean;
     readonly cleanupInterval: number;
-    readonly cacheKeyFn: (...args: any[]) => string;
+    readonly cacheKeyFn: (...args: never[]) => string;
     readonly statsFn: (stats: CacheStats) => void;
 }
 

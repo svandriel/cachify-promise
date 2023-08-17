@@ -5,7 +5,13 @@ import { incrementStatsValue } from './lib/increment-stats-value';
 import { isExpired } from './lib/is-expired';
 import { log } from './lib/log';
 import { CacheEntry } from './types/cache-entry';
-import { CacheOptions, CacheOptions0, CacheOptions1, CacheOptions2, CacheOptions3 } from './types/cache-options';
+import {
+    CacheOptions,
+    CacheOptions0,
+    CacheOptions1,
+    CacheOptions2,
+    CacheOptions3
+} from './types/cache-options';
 import { CacheState } from './types/cache-state';
 import {
     PromiseReturningFunction,
@@ -46,7 +52,11 @@ export function cachifyPromise<T>(
     fn: PromiseReturningFunction<T>,
     cacheOptions?: Partial<CacheOptions<T>>
 ): PromiseReturningFunction<T> {
-    const opts: CacheOptions<T> = Object.assign({}, getDefaultCacheOptions<T>(), cacheOptions);
+    const opts: CacheOptions<T> = Object.assign(
+        {},
+        getDefaultCacheOptions<T>(),
+        cacheOptions
+    );
 
     const state: CacheState<T> = {
         cacheMap: opts.cacheMap,
@@ -59,11 +69,14 @@ export function cachifyPromise<T>(
         }
     };
 
-    const cachedFunction = (...args: any[]) => {
+    const cachedFunction = (...args: never[]) => {
         const key = opts.cacheKeyFn(...args);
 
         const foundPromise = state.promiseCacheMap[key];
-        if (foundPromise && !(opts.staleWhileRevalidate && state.cacheMap.has(key))) {
+        if (
+            foundPromise &&
+            !(opts.staleWhileRevalidate && state.cacheMap.has(key))
+        ) {
             log(opts, `Promise cache hit for '${key}'`);
             incrementStatsValue(state, opts, 'hitPromise');
             return foundPromise;
@@ -79,12 +92,20 @@ export function cachifyPromise<T>(
                 // expired
                 if (opts.staleWhileRevalidate) {
                     if (state.promiseCacheMap[key]) {
-                        log(opts, `Stale cache hit for '${key}', but already revalidating`);
+                        log(
+                            opts,
+                            `Stale cache hit for '${key}', but already revalidating`
+                        );
                     } else {
                         log(opts, `Stale cache hit for '${key}', revalidating`);
-                        executePromise(state, opts, fn, key, args).catch(err => {
-                            log(opts, `Failed to do stale revalidation for '${key}' in background: ${err}`);
-                        });
+                        executePromise(state, opts, fn, key, args).catch(
+                            err => {
+                                log(
+                                    opts,
+                                    `Failed to do stale revalidation for '${key}' in background: ${err}`
+                                );
+                            }
+                        );
                     }
                     return Promise.resolve(entry.data);
                 } else {
@@ -103,7 +124,7 @@ export function cachifyPromise<T>(
     };
 
     return Object.assign(cachedFunction, {
-        delete(...args: any[]): boolean {
+        delete(...args: never[]): boolean {
             const key = opts.cacheKeyFn(...args);
             log(opts, `Deleting ${key} from cache`);
             return state.cacheMap.delete(key);

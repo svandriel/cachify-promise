@@ -11,7 +11,7 @@ export function executePromise<T>(
     opts: CacheOptions<T>,
     fn: PromiseReturningFunction<T>,
     key: string,
-    args: any[]
+    args: never[]
 ): Promise<T> {
     const promise = fn(...args);
     state.promiseCacheMap[key] = promise;
@@ -20,7 +20,12 @@ export function executePromise<T>(
     return promise;
 }
 
-function trackPromiseExecution<T>(state: CacheState<T>, opts: CacheOptions<T>, promise: Promise<T>, key: string): void {
+function trackPromiseExecution<T>(
+    state: CacheState<T>,
+    opts: CacheOptions<T>,
+    promise: Promise<T>,
+    key: string
+): void {
     promise
         .then(response => {
             if (opts.ttl > 0) {

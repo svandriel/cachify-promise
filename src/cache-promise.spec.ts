@@ -142,7 +142,7 @@ describe('cache-promise', () => {
         const stats = jest.fn<void, [CacheStats]>();
 
         const { promise, resolve } = deferred<number>();
-        const square = jest.fn((_x: number) => promise);
+        const square = jest.fn((_: number) => promise);
 
         const squareCached = cachifyPromise(square, {
             debug,
@@ -268,7 +268,7 @@ describe('cache-promise', () => {
             await cacheGetName(({
                 id: 1,
                 name: 'John'
-            } as any) as User)
+            } as unknown) as User)
         ).toBe('John');
 
         expect(getName).toHaveBeenCalledTimes(1);
@@ -278,7 +278,7 @@ describe('cache-promise', () => {
             await cacheGetName(({
                 id: 1,
                 name: 'John II'
-            } as any) as User)
+            } as unknown) as User)
         ).toBe('John');
 
         expect(getName).toHaveBeenCalledTimes(1);
@@ -287,7 +287,7 @@ describe('cache-promise', () => {
             await cacheGetName(({
                 id: 2,
                 name: 'John III'
-            } as any) as User)
+            } as unknown) as User)
         ).toBe('John III');
 
         expect(getName).toHaveBeenCalledTimes(2);

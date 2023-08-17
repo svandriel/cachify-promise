@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 export function deferred<U>(): Deferred<U> {
     let doResolve: (val: U | PromiseLike<U>) => void;
-    let doReject: (reason: any) => void;
+    let doReject: (reason: unknown) => void;
     const promise = new Promise<U>((resolve, reject) => {
         doResolve = resolve;
         doReject = reject;
@@ -14,7 +14,7 @@ export function deferred<U>(): Deferred<U> {
         resolve(val: U | PromiseLike<U>): void {
             doResolve(val);
         },
-        reject(reason: any): void {
+        reject(reason: unknown): void {
             doReject(reason);
         }
     };
@@ -23,5 +23,5 @@ export function deferred<U>(): Deferred<U> {
 interface Deferred<U> {
     promise: Promise<U>;
     resolve(val: U | PromiseLike<U> | undefined): void;
-    reject(reason: any): void;
+    reject(reason: unknown): void;
 }
