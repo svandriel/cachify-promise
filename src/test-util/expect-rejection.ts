@@ -4,6 +4,6 @@ export async function expectRejection(promise: Promise<any>, rejectionValue: any
         await promise;
         fail(`expected rejection: ${rejectionValue}`);
     } catch (err) {
-        expect(err.message).toEqual(rejectionValue);
+        expect((err as Error).message).toEqual(rejectionValue);
     }
 }
