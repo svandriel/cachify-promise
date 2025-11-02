@@ -265,29 +265,29 @@ describe('cache-promise', () => {
         });
 
         expect(
-            await cacheGetName(({
+            await cacheGetName({
                 id: 1,
                 name: 'John'
-            } as unknown) as User)
+            } as unknown as User)
         ).toBe('John');
 
         expect(getName).toHaveBeenCalledTimes(1);
         await tick();
 
         expect(
-            await cacheGetName(({
+            await cacheGetName({
                 id: 1,
                 name: 'John II'
-            } as unknown) as User)
+            } as unknown as User)
         ).toBe('John');
 
         expect(getName).toHaveBeenCalledTimes(1);
 
         expect(
-            await cacheGetName(({
+            await cacheGetName({
                 id: 2,
                 name: 'John III'
-            } as unknown) as User)
+            } as unknown as User)
         ).toBe('John III');
 
         expect(getName).toHaveBeenCalledTimes(2);
