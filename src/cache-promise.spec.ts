@@ -427,7 +427,7 @@ function mockSetInterval(): void {
         if (typeof fn === 'function') {
             fn();
         }
-        return 1;
+        return 1 as unknown as NodeJS.Timeout;
     });
     jest.spyOn(global, 'clearInterval').mockImplementation(() => {
         // no-op
