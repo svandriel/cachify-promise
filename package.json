@@ -54,7 +54,7 @@
     "jest": "^30.2.0",
     "lint-staged": "^10.0.8",
     "prettier": "^3.6.2",
-    "rimraf": "^3.0.2",
+    "rimraf": "^6.1.0",
     "ts-jest": "^29.4.5",
     "typescript": "^5.3.3"
   },
