@@ -4,4 +4,4 @@ node_js:
     - 12
     - 14
     - 16
-cache: yarn
+cache: pnpm
